@@ -97,7 +97,21 @@ fn dealer_cards() -> u32
         aces -= 1;
     }
 
-    while total < 17
+    println!();
+    println!("Dealer cards:");
+    thread::sleep(Duration::from_millis(255));
+
+    for card in &cards 
+    {
+        println!();
+        println!("{:?} of {:?}", card.value, card.suit);
+
+        thread::sleep(Duration::from_millis(255));
+    }
+
+    thread::sleep(Duration::from_secs(1));
+
+    while total <= 17
     {
         let card = Card::new();
 
@@ -145,12 +159,29 @@ fn player_cards() -> u32
     }
 
     loop 
-    {
-        println!("Your cards are: {:?}", cards);
+    {   
+        println!();
+        println!("Your cards:");
+        thread::sleep(Duration::from_millis(255));
+
+        for card in &cards 
+        {
+            println!();
+            println!("{:?} of {:?}", card.value, card.suit);
+
+            thread::sleep(Duration::from_millis(255));
+        }
+
+        thread::sleep(Duration::from_secs(1));
+
+        println!();
         println!("Current total: {}", total);
+
+        thread::sleep(Duration::from_secs(1));
 
         let mut card_input:String = String::new();
         
+        println!();
         println!("Do you want to hit or stand?");
 
         io::stdin()
@@ -184,13 +215,20 @@ fn player_cards() -> u32
 
             if total > 21 
             {
+                println!();
                 println!("Bust! Total: {}", total);
+
+                thread::sleep(Duration::from_secs(1));
+
                 break;
             }
         }
         else
         {
+            println!();
             println!("Invalid input, input hit or stand");
+
+            thread::sleep(Duration::from_secs(1));
         }
     }
 
@@ -199,6 +237,7 @@ fn player_cards() -> u32
 
 fn game_loop()
 {
+    println!();
     println!("Starting game . . .");
     thread::sleep(Duration::from_secs(2));
     
@@ -207,14 +246,21 @@ fn game_loop()
     let mut wins:i32 = 0;
     let mut loses:i32 = 0;
 
+    println!();
     println!("Welcome to the CATsino!");
+
+    thread::sleep(Duration::from_secs(1));
 
     'game_menu: loop
     {
+        println!();
         println!("Current cash: {}", cash);
+
+        thread::sleep(Duration::from_secs(1));
 
         let mut game_menu_input:String = String::new();
 
+        println!();
         println!("What would you like to do? \n\
         1.Play a round of BlackJack. \n\
         2.Check your scores. \n\
@@ -230,38 +276,127 @@ fn game_loop()
         {
             "1" => 
             {
+                println!();
                 println!("Starting Match");
 
                 thread::sleep(Duration::from_secs(2));
 
                 'game_loop: loop
                 {
+                    let mut win_check: bool = false;
+
                     let mut bet_amount:String = String::new();
 
+                    println!();
                     println!("Place your bet (Integers only)");
 
                     io::stdin()
                     .read_line(&mut bet_amount)
                     .expect("Failed to read line");
 
-                    let bet_amount:i32 = bet_amount.parse::<i32>().unwrap();
+                    let bet_amount:i32 = bet_amount.trim().parse::<i32>().unwrap();
+
+                    let dealer_card_result:u32 = dealer_cards();
+
+                    println!();
+                    println!("Your turn");
+
+                    thread::sleep(Duration::from_secs(1));
 
                     let player_card_result:u32 = player_cards();
 
-                    //player card loop ends
+                    if player_card_result > dealer_card_result 
+                    {
+                        if player_card_result == 21 && dealer_card_result != 21
+                        {
+                            win_check = true;
+                        }
+                        else if dealer_card_result > 21 && player_card_result <= 21
+                        {
+                            win_check = true;
+                        }
+                        else if player_card_result > 21
+                        {
+                            win_check = false;
+                        }
+                    }
+                    else if dealer_card_result == 21 && player_card_result == 21 
+                    {
+                        win_check = false;
+                    }
+                    else if dealer_card_result > player_card_result
+                    {
+                        if dealer_card_result > 21
+                        {
+                            win_check = true;
+                        }
 
-                    //dealers turn logic
+                    }
 
+                    if win_check
+                    {
+                        println!();
+                        println!("You won!");
 
+                        thread::sleep(Duration::from_secs(1));
 
-                    //dealers turn logic ends
+                        println!();
+                        println!("Scores: \n\
+                        Your score: {} \n\
+                        Dealer score: {} ",
+                        player_card_result,
+                        dealer_card_result);
 
-                    //win or lose calculation
+                        thread::sleep(Duration::from_secs(1));
 
-                    //win or lose calculation ends
+                        let money_to_add = bet_amount * 2;
+
+                        wins += 1;
+                        cash += money_to_add;
+
+                        println!();
+                        println!("You now have ${} cash", cash);
+
+                        thread::sleep(Duration::from_secs(1));
+
+                        println!();
+                        println!("You now have {} wins", wins);
+
+                        thread::sleep(Duration::from_secs(1));
+                    }
+                    else
+                    {
+                        println!();
+                        println!("You lost!");
+
+                        thread::sleep(Duration::from_secs(1));
+
+                        println!();
+                        println!("Scores: \n\
+                        Your score: {} \n\
+                        Dealer score: {} ",
+                        player_card_result,
+                        dealer_card_result);
+
+                        thread::sleep(Duration::from_secs(1));
+
+                        cash -= bet_amount;
+                        loses += 1;
+
+                        println!();
+                        println!("You now have ${} cash", cash);
+
+                        thread::sleep(Duration::from_secs(1));
+
+                        println!();
+                        println!("You now have {} loses", loses);
+
+                        thread::sleep(Duration::from_secs(1));
+                    }
 
                     let mut continue_input:String = String::new();
 
+                    println!();
                     println!("What do you want to do? \n\
                     1.Continue playing. \n\
                     2.Stop playing.");
@@ -282,6 +417,7 @@ fn game_loop()
                     }
                     else
                     {
+                        println!();
                         println!("Invalid input continuing automatically");
 
                         thread::sleep(Duration::from_secs(1));
@@ -290,6 +426,7 @@ fn game_loop()
             }
             "2" => 
             {
+                println!();
                 println!("Scores: \n\
                 ========== \n\
                 Wins: {} \n\
@@ -306,7 +443,10 @@ fn game_loop()
             }
             _ => 
             {
+                println!();
                 println!("Invalid input please try again (Tip input the number of the action)");
+
+                thread::sleep(Duration::from_secs(1));
             }
         }
     }
@@ -321,6 +461,7 @@ fn main()
     {
         let mut start_input: String = String::new();
 
+        println!();
         println!("Would you like to start? \n\
         1.Start \n\
         2.Exit");
@@ -345,7 +486,10 @@ fn main()
 
             _ => 
             {
+                println!();
                 println!("Invalid input please try again.(Input the number of the action)");
+
+                thread::sleep(Duration::from_secs(1));
             }
         }
     }
